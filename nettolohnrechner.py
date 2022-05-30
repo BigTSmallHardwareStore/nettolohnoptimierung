@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup
 
 
 # class to get user input with relevant information and set default values
-class GetUserInput:
+class UserData:
     year = 2022
     LZZ = 1
     RE4 = 0
@@ -51,7 +51,7 @@ class GetUserInput:
             except ValueError:
                 print("Bitte geb das Komma als . ein")
 
-        self.kirchensteuersatz = int(input("Kirchensteuersatz (Default: 8): ") or self.kirchensteuersatz) / 100
+        self.kirchensteuersatz = int(input("Kirchensteuersatz (Default: 8): ") or self.kirchensteuersatz)
         self.min_hour = int(input("Mindestwochenarbeitszeit (Default: 20): ") or self.min_hour)
         self.max_hour = int(input("Maximalwochenarbeitszeit (Default: 40): ") or self.max_hour)
 
@@ -65,7 +65,6 @@ class GetTaxAndSocialInsurance:
     lohnsteuer = 0.00
     soli = 0.00
     kirchensteuer = 0
-    kirchensteuersatz = 0
     arbeitslosenversicherung = 0.00
     rentenversicherung = 0
     pflegeversicherung = 0
@@ -98,8 +97,8 @@ class GetTaxAndSocialInsurance:
         self.soli = round(float(self.SOLZLZZ), 2) / 100
 
     def calculate_kirchensteuer(self, class_obj):
-        self.kirchensteuersatz = class_obj.kirchensteuersatz / 100
-        self.kirchensteuer = self.lohnsteuer * self.kirchensteuersatz
+        kirchensteuersatz = class_obj.kirchensteuersatz / 100
+        self.kirchensteuer = self.lohnsteuer * kirchensteuersatz
         # self.kirchensteuer = math.floor(float(self.kirchensteuer))
         self.kirchensteuer = round(self.kirchensteuer, 2)
         # TODO: Kappung der Kirchensteuer. In allen Bundesländern außer Bayern
