@@ -52,8 +52,22 @@ class UserData:
                 print("Bitte geb das Komma als . ein")
 
         self.kirchensteuersatz = int(input("Kirchensteuersatz (Default: 8): ") or self.kirchensteuersatz)
-        self.min_hour = int(input("Mindestwochenarbeitszeit (Default: 20): ") or self.min_hour)
-        self.max_hour = int(input("Maximalwochenarbeitszeit (Default: 40): ") or self.max_hour)
+
+        while True:
+            min_hour = int(input("Mindestwochenarbeitszeit (Default: 20): ") or self.min_hour)
+            if min_hour > 0:
+                self.min_hour = min_hour
+                break
+            else:
+                print("Mindestens 1 Stunde musst du arbeiten. 0 ist nicht erlaubt")
+
+        while True:
+            max_hour = int(input("Maximalwochenarbeitszeit (Default: 40): ") or self.max_hour)
+            if max_hour > 0:
+                self.max_hour = max_hour
+                break
+            else:
+                print("Mindestens 1 Stunde musst du arbeiten. 0 ist nicht erlaubt")
 
 
 # to calculate tax with BMF interface and social insurance tax
