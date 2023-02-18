@@ -1,17 +1,19 @@
+import datetime
+
 import requests
 from bs4 import BeautifulSoup
 
 
 # class to get user input with relevant information and set default values
 class UserData:
-    year = 2022
+    year = 2023
     LZZ = 1
     RE4 = 0
     STKL = 1
-    KVZ = 1.30
+    KVZ = 1.35
     PVZ = 0
     ZKF = 0
-    kirchensteuersatz = 8
+    kirchensteuersatz = 0
     min_hour = 20
     max_hour = 40
 
@@ -21,7 +23,7 @@ class UserData:
 
         # checks, if Jahresbruttolohn not empty and not negative
         while True:
-            self.RE4 = input("Jahresbruttolohn: ")
+            self.RE4 = input("Jahresbruttolohn bei 40 h: ")
             if self.RE4 != '' and int(self.RE4) >= 0:
                 self.RE4 = int(self.RE4)
                 break
@@ -36,7 +38,7 @@ class UserData:
         # according to BMF 2 decimal places must be indicated and German comma have to be a dot
         while True:
             try:
-                self.KVZ = format(float(input("Krankenkassenzusatzbeitrag (Default: 1,30): ") or self.KVZ), ".2f")
+                self.KVZ = format(float(input(f"Krankenkassenzusatzbeitrag (Default: {self.KVZ}): ") or self.KVZ), ".2f")
                 break
             except ValueError:
                 print("Bitte geb das Komma als . ein")
@@ -51,7 +53,7 @@ class UserData:
             except ValueError:
                 print("Bitte geb das Komma als . ein")
 
-        self.kirchensteuersatz = int(input("Kirchensteuersatz (Default: 8): ") or self.kirchensteuersatz)
+        self.kirchensteuersatz = int(input("Kirchensteuersatz (Default: 0): ") or self.kirchensteuersatz)
 
         while True:
             min_hour = int(input("Mindestwochenarbeitszeit (Default: 20): ") or self.min_hour)
@@ -98,9 +100,11 @@ class GetTaxAndSocialInsurance:
     def get_tax_from_bmf(self, class_obj):
         base_url = "https://www.bmf-steuerrechner.de/interface/"
         re4 = self.RE4 * 100
-        request_url = f"{base_url}{class_obj.year}Version1.xhtml?code={class_obj.year}eP&LZZ={class_obj.LZZ}" \
+        current_year = datetime.date.today().year
+        request_url = f"{base_url}{class_obj.year}Version1.xhtml?code=ext{current_year}&LZZ={class_obj.LZZ}" \
                       f"&RE4={re4}&STKL={class_obj.STKL}&KVZ={class_obj.KVZ}&PVZ={class_obj.PVZ}" \
                       f"&ZKF={class_obj.ZKF}"
+        print(request_url)
         r = requests.get(request_url)
 
         self.LSTLZZ = BeautifulSoup(r.content, 'xml').find('ausgabe', {'name': "LSTLZZ"}).get('value')
@@ -118,8 +122,8 @@ class GetTaxAndSocialInsurance:
         # TODO: Kappung der Kirchensteuer. In allen Bundesländern außer Bayern
 
     def calculate_arbeitslosenversicherung(self):
-        beitragssatz_arbeitslosen = 0.024 / 2
-        beitragsbemessungsgrenze_arbeitslosen_alt = 7_050 * 12
+        beitragssatz_arbeitslosen = 0.026 / 2
+        beitragsbemessungsgrenze_arbeitslosen_alt = 7_300 * 12
         if self.RE4 >= beitragsbemessungsgrenze_arbeitslosen_alt:
             self.arbeitslosenversicherung = beitragsbemessungsgrenze_arbeitslosen_alt * beitragssatz_arbeitslosen
         else:
@@ -129,7 +133,7 @@ class GetTaxAndSocialInsurance:
 
     def calculate_rentenversicherung(self):
         beitragssatz_renten = 0.186 / 2
-        beitragsbemessungsgrenze_renten_alt = 7_050 * 12
+        beitragsbemessungsgrenze_renten_alt = 7_300 * 12
         if self.RE4 >= beitragsbemessungsgrenze_renten_alt:
             self.rentenversicherung = beitragsbemessungsgrenze_renten_alt * beitragssatz_renten
         else:
@@ -143,7 +147,7 @@ class GetTaxAndSocialInsurance:
             beitragssatz_pflege = beitragssatz_pflege / 2
         else:
             beitragssatz_pflege = (beitragssatz_pflege / 2) + 0.0035
-        beitragsbemessungsgrenze_pflege_alt = 58_050
+        beitragsbemessungsgrenze_pflege_alt = 59_850
 
         if self.RE4 >= beitragsbemessungsgrenze_pflege_alt:
             self.pflegeversicherung = beitragsbemessungsgrenze_pflege_alt * beitragssatz_pflege
@@ -152,8 +156,8 @@ class GetTaxAndSocialInsurance:
         self.pflegeversicherung = round(self.pflegeversicherung, 2)
 
     def calculate_krankenversicherung(self):
-        beitragssatz_kranken = 0.157 / 2
-        beitragsbemessungsgrenze_kranken_alt = 58_050
+        beitragssatz_kranken = 0.146 / 2
+        beitragsbemessungsgrenze_kranken_alt = 59_850
         if self.RE4 >= beitragsbemessungsgrenze_kranken_alt:
             self.krankenversicherung = beitragsbemessungsgrenze_kranken_alt * beitragssatz_kranken
         else:

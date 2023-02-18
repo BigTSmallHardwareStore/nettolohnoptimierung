@@ -22,7 +22,7 @@ def calculate_data_per_hour(obj):
         # to get the original user input value of RE4 for the next loop
         obj.RE4 = obj.RE4 * 40 / i
 
-        wait_time = random.randint(5, 20)
+        wait_time = random.randint(5, 15)
         if i == max_hour:
             break
         # TODO: remove print
